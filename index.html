@@ -87,15 +87,24 @@
             <!-- Hazard Display -->
             <div id="hazards-container" class="bg-orange-50 dark:bg-orange-900 rounded-2xl p-4 mb-6 shadow-inner transition-colors">
                 <h3 class="text-center text-sm font-semibold text-orange-800 dark:text-orange-200 mb-2">Hazards</h3>
-                <div id="hazards-layout" class="flex justify-between gap-4">
-                    <div id="hazards-left" class="flex-1 space-y-2">
-                        <!-- Left hazards here -->
+                <div id="hazards-layout" class="grid grid-cols-3 gap-4">
+                    <div class="space-y-2">
+                        <p class="text-center text-xs font-semibold text-zinc-600 dark:text-zinc-300">Left</p>
+                        <div id="hazards-left" class="space-y-2">
+                            <!-- Left hazards here -->
+                        </div>
                     </div>
-                    <div id="hazards-center" class="flex-1 space-y-2">
-                        <!-- Center hazards here -->
+                    <div class="space-y-2">
+                        <p class="text-center text-xs font-semibold text-zinc-600 dark:text-zinc-300">Center</p>
+                        <div id="hazards-center" class="space-y-2">
+                            <!-- Center hazards here -->
+                        </div>
                     </div>
-                    <div id="hazards-right" class="flex-1 space-y-2 text-right">
-                        <!-- Right hazards here -->
+                    <div class="space-y-2">
+                        <p class="text-center text-xs font-semibold text-zinc-600 dark:text-zinc-300">Right</p>
+                        <div id="hazards-right" class="space-y-2">
+                            <!-- Right hazards here -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -274,7 +283,20 @@
             // ====================================================================
             // Helper functions to handle the logic
             // ====================================================================
-            
+
+            // SVG icon for a bunker
+            const bunkerIcon = `<svg class="w-6 h-6 text-amber-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                <path d="M12 10V6c-2.21 0-4 1.79-4 4h4z"/>
+            </svg>`;
+
+            // SVG icon for water
+            const waterIcon = `<svg class="w-6 h-6 text-cyan-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                <path d="M12 12c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                <path d="M12 8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+            </svg>`;
+
             // Haversine formula to calculate distance between two lat/lon points
             function haversine(lat1, lon1, lat2, lon2) {
                 const R = 6371; // Earth's radius in km
@@ -341,19 +363,27 @@
                         let bgClass = '';
                         let textClass = '';
                         let parentEl;
+                        let iconHtml;
+                        let hazardName = '';
 
-                        // Determine the color and parent container based on the hazard name
+                        // Determine the color, icon and parent container based on the hazard name
                         const hazardNameLower = hazard.name.toLowerCase();
                         if (hazardNameLower.includes("bunker")) {
                             bgClass = 'bg-amber-100 dark:bg-amber-900';
                             textClass = 'text-amber-800 dark:text-amber-200';
+                            iconHtml = bunkerIcon;
+                            hazardName = 'Bunker';
                         } else if (hazardNameLower.includes("water")) {
                             bgClass = 'bg-cyan-100 dark:bg-cyan-900';
                             textClass = 'text-cyan-800 dark:text-cyan-200';
+                            iconHtml = waterIcon;
+                            hazardName = 'Water';
                         } else {
-                            // Default colors for other hazards
+                            // Default colors and no icon for other hazards
                             bgClass = 'bg-zinc-200 dark:bg-zinc-800';
                             textClass = 'text-zinc-800 dark:text-zinc-200';
+                            iconHtml = '';
+                            hazardName = hazard.name;
                         }
 
                         if (hazardNameLower.includes('left')) {
@@ -370,10 +400,10 @@
                         if (hazard.front && hazard.back) {
                             const distToFront = haversine(userLat, userLon, hazard.front[0], hazard.front[1]);
                             const distToBack = haversine(userLat, userLon, hazard.back[0], hazard.back[1]);
-                            hazardDiv.innerHTML = `<span class="text-sm font-semibold">${hazard.name}</span> <span class="text-lg font-bold">${Math.round(distToFront)} / ${Math.round(distToBack)}<span class="text-xs font-normal"> yds</span></span>`;
+                            hazardDiv.innerHTML = `<div class="flex items-center space-x-2">${iconHtml}<span class="text-sm font-semibold">${hazardName}</span></div> <span class="text-lg font-bold">${Math.round(distToFront)} / ${Math.round(distToBack)}<span class="text-xs font-normal"> yds</span></span>`;
                         } else if (hazard.location) {
                             const distToHazard = haversine(userLat, userLon, hazard.location[0], hazard.location[1]);
-                            hazardDiv.innerHTML = `<span class="text-sm font-semibold">${hazard.name}</span> <span class="text-lg font-bold">${Math.round(distToHazard)}<span class="text-xs font-normal"> yds</span></span>`;
+                            hazardDiv.innerHTML = `<div class="flex items-center space-x-2">${iconHtml}<span class="text-sm font-semibold">${hazardName}</span></div> <span class="text-lg font-bold">${Math.round(distToHazard)}<span class="text-xs font-normal"> yds</span></span>`;
                         }
                         parentEl.appendChild(hazardDiv);
                     });

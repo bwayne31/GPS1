@@ -303,21 +303,6 @@
                 return distance_km * 1093.61; // Convert km to yards
             }
 
-            // Function to determine the directional relationship of a hazard to the user's line to the green
-            function getDirection(userLat, userLon, targetLat, targetLon, hazardLat, hazardLon) {
-                // Use a simple cross-product approach. For small distances, lat/lon can be treated as a planar coordinate system.
-                const val = (targetLon - userLon) * (hazardLat - userLat) - (targetLat - userLat) * (hazardLon - userLon);
-                const epsilon = 0.0001; // A small value for floating point comparisons
-
-                if (val > epsilon) {
-                    return "Left";
-                } else if (val < -epsilon) {
-                    return "Right";
-                } else {
-                    return "Center";
-                }
-            }
-
             // Function to update the UI with current hole and course info
             function updateUI() {
                 const hole = courseData.holes[currentHoleIndex];
@@ -379,19 +364,15 @@
                             hazardName = hazard.name;
                         }
 
-                        // Get the hazard's location to determine direction
-                        const hazardLoc = hazard.location || [(hazard.front[0] + hazard.back[0])/2, (hazard.front[1] + hazard.back[1])/2];
-                        const direction = getDirection(userLat, userLon, currentHole.center[0], currentHole.center[1], hazardLoc[0], hazardLoc[1]);
-
                         hazardDiv.className = `flex justify-between items-center py-2 px-3 rounded-xl shadow-sm ${bgClass} ${textClass}`;
 
                         if (hazard.front && hazard.back) {
                             const distToFront = haversine(userLat, userLon, hazard.front[0], hazard.front[1]);
                             const distToBack = haversine(userLat, userLon, hazard.back[0], hazard.back[1]);
-                            hazardDiv.innerHTML = `<div class="flex items-center space-x-2">${iconHtml}<span class="text-sm font-semibold">${hazardName} <span class="text-xs font-normal">(${direction})</span></span></div> <span class="text-lg font-bold">${Math.round(distToFront)} / ${Math.round(distToBack)}<span class="text-xs font-normal"> yds</span></span>`;
+                            hazardDiv.innerHTML = `<div class="flex items-center space-x-2">${iconHtml}<span class="text-sm font-semibold">${hazardName}</span></div> <span class="text-lg font-bold">${Math.round(distToFront)} / ${Math.round(distToBack)}<span class="text-xs font-normal"> yds</span></span>`;
                         } else if (hazard.location) {
                             const distToHazard = haversine(userLat, userLon, hazard.location[0], hazard.location[1]);
-                            hazardDiv.innerHTML = `<div class="flex items-center space-x-2">${iconHtml}<span class="text-sm font-semibold">${hazardName} <span class="text-xs font-normal">(${direction})</span></span></div> <span class="text-lg font-bold">${Math.round(distToHazard)}<span class="text-xs font-normal"> yds</span></span>`;
+                            hazardDiv.innerHTML = `<div class="flex items-center space-x-2">${iconHtml}<span class="text-sm font-semibold">${hazardName}</span></div> <span class="text-lg font-bold">${Math.round(distToHazard)}<span class="text-xs font-normal"> yds</span></span>`;
                         }
                         hazardsListEl.appendChild(hazardDiv);
                     });
@@ -643,3 +624,4 @@
     </script>
 </body>
 </html>
+

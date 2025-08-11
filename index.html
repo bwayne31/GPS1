@@ -183,7 +183,7 @@
                         front: [44.074584, -92.432029], 
                         center: [44.074452, -92.432007], 
                         back: [44.074334, -92.431968],
-                        hazards: [] // Removed "Greenside Bunker" from here
+                        hazards: []
                     },
                     { 
                         hole: 2, 
@@ -215,9 +215,17 @@
                         front: [44.073577, -92.435656], 
                         center: [44.073693, -92.435775], 
                         back: [44.073808, -92.435914],
-                        hazards: [] // Removed "Greenside Water" from here
+                        hazards: []
                     },
-                    { hole: 5, par: 4, tee: [44.074034, -92.439247], front: [44.074087, -92.442439], center: [44.074133, -92.442610], back: [44.074181, -92.442764], hazards: [] },
+                    { 
+                        hole: 5, 
+                        par: 4, 
+                        tee: [44.074034, -92.439247], 
+                        front: [44.074087, -92.442439], 
+                        center: [44.074133, -92.442610], 
+                        back: [44.074181, -92.442764], 
+                        hazards: []
+                    },
                     { 
                         hole: 6, 
                         par: 3, 
@@ -236,9 +244,20 @@
                         front: [44.074793, -92.441756], 
                         center: [44.074769, -92.441583], 
                         back: [44.074780, -92.441421], 
-                        hazards: [] // Removed all hazards from this hole
+                        hazards: [
+                            { name: "Left Bunker", location: [44.074621, -92.442656] }, // Correctly restored Left Bunker
+                            { name: "Right Water", location: [44.074800, -92.441900] } // Correctly restored Right Water
+                        ]
                     },
-                    { hole: 8, par: 3, tee: [44.074850, -92.439902], front: [44.074910, -92.438149], center: [44.074950, -92.437983], back: [44.074989, -92.437890], hazards: [] },
+                    { 
+                        hole: 8, 
+                        par: 3, 
+                        tee: [44.074850, -92.439902], 
+                        front: [44.074910, -92.438149], 
+                        center: [44.074950, -92.437983], 
+                        back: [44.074989, -92.437890], 
+                        hazards: []
+                    },
                     { 
                         hole: 9, 
                         par: 4, 
@@ -616,3 +635,4 @@
     </script>
 </body>
 </html>
+

@@ -84,29 +84,9 @@
                 </div>
             </div>
             
-            <!-- Hazard Display -->
-            <div id="hazards-container" class="bg-orange-50 dark:bg-orange-900 rounded-2xl p-4 mb-6 shadow-inner transition-colors">
-                <h3 class="text-center text-sm font-semibold text-orange-800 dark:text-orange-200 mb-2">Hazards</h3>
-                <div id="hazards-layout" class="grid grid-cols-3 gap-4">
-                    <div class="space-y-2">
-                        <p class="text-center text-xs font-semibold text-zinc-600 dark:text-zinc-300">Left</p>
-                        <div id="hazards-left" class="space-y-2">
-                            <!-- Left hazards here -->
-                        </div>
-                    </div>
-                    <div class="space-y-2">
-                        <p class="text-center text-xs font-semibold text-zinc-600 dark:text-zinc-300">Center</p>
-                        <div id="hazards-center" class="space-y-2">
-                            <!-- Center hazards here -->
-                        </div>
-                    </div>
-                    <div class="space-y-2">
-                        <p class="text-center text-xs font-semibold text-zinc-600 dark:text-zinc-300">Right</p>
-                        <div id="hazards-right" class="space-y-2">
-                            <!-- Right hazards here -->
-                        </div>
-                    </div>
-                </div>
+            <!-- Hazard Display (Simplified) -->
+            <div id="hazards-list" class="space-y-2 mb-6">
+                <!-- Hazards will be dynamically added here -->
             </div>
 
             <!-- Loading and Error Messages -->
@@ -333,10 +313,8 @@
                 const centerEl = document.getElementById('distance-center');
                 const backEl = document.getElementById('distance-back');
                 
-                const hazardsContainerEl = document.getElementById('hazards-container');
-                const hazardsLeftEl = document.getElementById('hazards-left');
-                const hazardsCenterEl = document.getElementById('hazards-center');
-                const hazardsRightEl = document.getElementById('hazards-right');
+                const hazardsListEl = document.getElementById('hazards-list');
+                hazardsListEl.innerHTML = ''; // Clear previous hazard list
 
                 const distFront = haversine(userLat, userLon, currentHole.front[0], currentHole.front[1]);
                 const distCenter = haversine(userLat, userLon, currentHole.center[0], currentHole.center[1]);
@@ -345,58 +323,36 @@
                 frontEl.textContent = Math.round(distFront);
                 centerEl.textContent = Math.round(distCenter);
                 backEl.textContent = Math.round(distBack);
-
-                // Clear previous hazard lists
-                hazardsLeftEl.innerHTML = '';
-                hazardsCenterEl.innerHTML = '';
-                hazardsRightEl.innerHTML = '';
                 
                 // Dynamically add new hazard list
                 if (currentHole.hazards && currentHole.hazards.length > 0) {
-                    // Show the container if there are hazards
-                    hazardsContainerEl.style.display = 'block';
-                    // Update the hazard container's background for general hazards
-                    hazardsContainerEl.className = "bg-orange-50 dark:bg-orange-900 rounded-2xl p-4 mb-6 shadow-inner transition-colors";
-
                     currentHole.hazards.forEach(hazard => {
                         const hazardDiv = document.createElement('div');
                         let bgClass = '';
                         let textClass = '';
-                        let parentEl;
                         let iconHtml;
                         let hazardName = '';
 
-                        // Determine the color, icon and parent container based on the hazard name
                         const hazardNameLower = hazard.name.toLowerCase();
                         if (hazardNameLower.includes("bunker")) {
                             bgClass = 'bg-amber-100 dark:bg-amber-900';
                             textClass = 'text-amber-800 dark:text-amber-200';
                             iconHtml = bunkerIcon;
-                            hazardName = 'Bunker';
+                            hazardName = hazard.name;
                         } else if (hazardNameLower.includes("water")) {
                             bgClass = 'bg-cyan-100 dark:bg-cyan-900';
                             textClass = 'text-cyan-800 dark:text-cyan-200';
                             iconHtml = waterIcon;
-                            hazardName = 'Water';
+                            hazardName = hazard.name;
                         } else {
-                            // Default colors and no icon for other hazards
                             bgClass = 'bg-zinc-200 dark:bg-zinc-800';
                             textClass = 'text-zinc-800 dark:text-zinc-200';
                             iconHtml = '';
                             hazardName = hazard.name;
                         }
 
-                        if (hazardNameLower.includes('left')) {
-                            parentEl = hazardsLeftEl;
-                        } else if (hazardNameLower.includes('right')) {
-                            parentEl = hazardsRightEl;
-                        } else {
-                            parentEl = hazardsCenterEl;
-                        }
-                        
-                        hazardDiv.className = `flex justify-between items-center my-2 py-2 px-3 rounded-xl shadow-sm ${bgClass} ${textClass}`;
+                        hazardDiv.className = `flex justify-between items-center py-2 px-3 rounded-xl shadow-sm ${bgClass} ${textClass}`;
 
-                        // Check if the hazard has front/back coordinates or a single location
                         if (hazard.front && hazard.back) {
                             const distToFront = haversine(userLat, userLon, hazard.front[0], hazard.front[1]);
                             const distToBack = haversine(userLat, userLon, hazard.back[0], hazard.back[1]);
@@ -405,11 +361,8 @@
                             const distToHazard = haversine(userLat, userLon, hazard.location[0], hazard.location[1]);
                             hazardDiv.innerHTML = `<div class="flex items-center space-x-2">${iconHtml}<span class="text-sm font-semibold">${hazardName}</span></div> <span class="text-lg font-bold">${Math.round(distToHazard)}<span class="text-xs font-normal"> yds</span></span>`;
                         }
-                        parentEl.appendChild(hazardDiv);
+                        hazardsListEl.appendChild(hazardDiv);
                     });
-                } else {
-                    // Hide the container if there are no hazards
-                    hazardsContainerEl.style.display = 'none';
                 }
             }
 
@@ -433,12 +386,10 @@
                 scores[currentHoleIndex] = parseInt(score);
                 document.getElementById('score-entry-message').textContent = `Score of ${score} saved for Hole ${courseData.holes[currentHoleIndex].hole}.`;
                 
-                // Now, when a score is saved, we return to the main view, not the scorecard
                 currentHoleIndex++;
                 document.getElementById('score-entry-view').classList.add('hidden');
                 document.getElementById('main-view').classList.remove('hidden');
                 updateUI();
-                // Also trigger a location update to get fresh distances immediately
                 navigator.geolocation.getCurrentPosition(displayDistances);
             }
             
@@ -448,15 +399,12 @@
                 if ("geolocation" in navigator) {
                     messageArea.textContent = 'Watching your location...';
 
-                    // Use watchPosition to get continuous location updates
                     watcherId = navigator.geolocation.watchPosition(
                         (position) => {
                             const userLat = position.coords.latitude;
                             const userLon = position.coords.longitude;
                             
-                            // First, check the special case for the final hole (Hole 9)
                             if (currentHoleIndex === courseData.holes.length - 1 && scores[currentHoleIndex] === null) {
-                                // We are on Hole 9 and haven't scored yet. Check distance to clubhouse.
                                 const distToClubhouse = haversine(userLat, userLon, clubhouseCoordinates[0], clubhouseCoordinates[1]);
                                 if (distToClubhouse <= finalProximityThreshold) {
                                     showScoreEntry(courseData.holes[currentHoleIndex].hole);
@@ -466,7 +414,6 @@
                                     messageArea.textContent = 'Distances updated.';
                                 }
                             } else if (currentHoleIndex < courseData.holes.length - 1) {
-                                // For all other holes, check distance to the next tee box.
                                 const nextHole = courseData.holes[currentHoleIndex + 1];
                                 const distToNextTee = haversine(userLat, userLon, nextHole.tee[0], nextHole.tee[1]);
                                 
@@ -474,10 +421,13 @@
                                     showScoreEntry(courseData.holes[currentHoleIndex].hole);
                                     messageArea.textContent = `Arrived at the next tee box. Please enter your score for the last hole.`;
                                 } else {
-                                    // If not advancing, just display the current distances
                                     displayDistances(position);
                                     messageArea.textContent = 'Distances updated.';
                                 }
+                            } else {
+                                // For the final hole after scoring, just show the scorecard
+                                showScorecard();
+                                messageArea.textContent = 'Round complete.';
                             }
                         },
                         (error) => {
@@ -661,3 +611,4 @@
     </script>
 </body>
 </html>
+

@@ -87,8 +87,16 @@
             <!-- Hazard Display -->
             <div id="hazards-container" class="bg-orange-50 dark:bg-orange-900 rounded-2xl p-4 mb-6 shadow-inner transition-colors">
                 <h3 class="text-center text-sm font-semibold text-orange-800 dark:text-orange-200 mb-2">Hazards</h3>
-                <div id="hazards-list" class="text-center text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                    <!-- Hazards will be dynamically added here -->
+                <div id="hazards-layout" class="flex justify-between gap-4">
+                    <div id="hazards-left" class="flex-1 space-y-2">
+                        <!-- Left hazards here -->
+                    </div>
+                    <div id="hazards-center" class="flex-1 space-y-2">
+                        <!-- Center hazards here -->
+                    </div>
+                    <div id="hazards-right" class="flex-1 space-y-2 text-right">
+                        <!-- Right hazards here -->
+                    </div>
                 </div>
             </div>
 
@@ -208,7 +216,7 @@
                         center: [44.072678, -92.433714], 
                         back: [44.072582, -92.433597], 
                         hazards: [
-                            { name: "Bunker", front: [44.07296298584522, -92.43384416400436], back: [44.0728455383541, -92.43355549598716] }
+                            { name: "Left Bunker", front: [44.07296298584522, -92.43384416400436], back: [44.0728455383541, -92.43355549598716] }
                         ]
                     },
                     { hole: 4, par: 3, tee: [44.072748, -92.434836], front: [44.073577, -92.435656], center: [44.073693, -92.435775], back: [44.073808, -92.435914], hazards: [] },
@@ -232,8 +240,8 @@
                         center: [44.074769, -92.441583], 
                         back: [44.074780, -92.441421], 
                         hazards: [
-                            { name: "Water Carry", location: [44.074940693489815, -92.44377158818594] },
-                            { name: "Bunker", front: [44.07491591503698, -92.44176348042092], back: [44.0749091706003, -92.44156700862273] }
+                            { name: "Right Water", location: [44.074940693489815, -92.44377158818594] },
+                            { name: "Left Bunker", front: [44.07491591503698, -92.44176348042092], back: [44.0749091706003, -92.44156700862273] }
                         ]
                     },
                     { hole: 8, par: 3, tee: [44.074850, -92.439902], front: [44.074910, -92.438149], center: [44.074950, -92.437983], back: [44.074989, -92.437890], hazards: [] },
@@ -245,7 +253,7 @@
                         center: [44.075108, -92.433005], 
                         back: [44.075154, -92.432855], 
                         hazards: [
-                            { name: "Bunker", front: [44.07517764620998, -92.43392076595802], back: [44.07522774749392, -92.43358414874744] }
+                            { name: "Left Bunker", front: [44.07517764620998, -92.43392076595802], back: [44.07522774749392, -92.43358414874744] }
                         ]
                     }
                 ]
@@ -302,8 +310,11 @@
                 const frontEl = document.getElementById('distance-front');
                 const centerEl = document.getElementById('distance-center');
                 const backEl = document.getElementById('distance-back');
-                const hazardsListEl = document.getElementById('hazards-list');
+                
                 const hazardsContainerEl = document.getElementById('hazards-container');
+                const hazardsLeftEl = document.getElementById('hazards-left');
+                const hazardsCenterEl = document.getElementById('hazards-center');
+                const hazardsRightEl = document.getElementById('hazards-right');
 
                 const distFront = haversine(userLat, userLon, currentHole.front[0], currentHole.front[1]);
                 const distCenter = haversine(userLat, userLon, currentHole.center[0], currentHole.center[1]);
@@ -313,8 +324,10 @@
                 centerEl.textContent = Math.round(distCenter);
                 backEl.textContent = Math.round(distBack);
 
-                // Clear previous hazard list
-                hazardsListEl.innerHTML = '';
+                // Clear previous hazard lists
+                hazardsLeftEl.innerHTML = '';
+                hazardsCenterEl.innerHTML = '';
+                hazardsRightEl.innerHTML = '';
                 
                 // Dynamically add new hazard list
                 if (currentHole.hazards && currentHole.hazards.length > 0) {
@@ -327,18 +340,28 @@
                         const hazardDiv = document.createElement('div');
                         let bgClass = '';
                         let textClass = '';
+                        let parentEl;
 
-                        // Determine the color classes based on the hazard name
-                        if (hazard.name.includes("Bunker")) {
+                        // Determine the color and parent container based on the hazard name
+                        const hazardNameLower = hazard.name.toLowerCase();
+                        if (hazardNameLower.includes("bunker")) {
                             bgClass = 'bg-amber-100 dark:bg-amber-900';
                             textClass = 'text-amber-800 dark:text-amber-200';
-                        } else if (hazard.name.includes("Water")) {
+                        } else if (hazardNameLower.includes("water")) {
                             bgClass = 'bg-cyan-100 dark:bg-cyan-900';
                             textClass = 'text-cyan-800 dark:text-cyan-200';
                         } else {
                             // Default colors for other hazards
                             bgClass = 'bg-zinc-200 dark:bg-zinc-800';
                             textClass = 'text-zinc-800 dark:text-zinc-200';
+                        }
+
+                        if (hazardNameLower.includes('left')) {
+                            parentEl = hazardsLeftEl;
+                        } else if (hazardNameLower.includes('right')) {
+                            parentEl = hazardsRightEl;
+                        } else {
+                            parentEl = hazardsCenterEl;
                         }
                         
                         hazardDiv.className = `flex justify-between items-center my-2 py-2 px-3 rounded-xl shadow-sm ${bgClass} ${textClass}`;
@@ -352,7 +375,7 @@
                             const distToHazard = haversine(userLat, userLon, hazard.location[0], hazard.location[1]);
                             hazardDiv.innerHTML = `<span class="text-sm font-semibold">${hazard.name}</span> <span class="text-lg font-bold">${Math.round(distToHazard)}<span class="text-xs font-normal"> yds</span></span>`;
                         }
-                        hazardsListEl.appendChild(hazardDiv);
+                        parentEl.appendChild(hazardDiv);
                     });
                 } else {
                     // Hide the container if there are no hazards

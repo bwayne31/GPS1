@@ -183,7 +183,9 @@
                         front: [44.074584, -92.432029], 
                         center: [44.074452, -92.432007], 
                         back: [44.074334, -92.431968],
-                        hazards: []
+                        hazards: [
+                            { name: "Greenside Bunker", location: [44.074614, -92.432194] }
+                        ]
                     },
                     { 
                         hole: 2, 
@@ -193,8 +195,8 @@
                         center: [44.074227, -92.434211], 
                         back: [44.074301, -92.434349],
                         hazards: [
-                            { name: "Right Bunker", front: [44.073791332201665, -92.4325732153536], back: [44.073825055014325, -92.43290715036665] },
-                            { name: "Left Bunker", front: [44.073681492048536, -92.43348248419395], back: [44.07386070482263, -92.43383653576203] }
+                            { name: "Right Bunker", location: [44.073809, -92.432729] },
+                            { name: "Left Bunker", location: [44.073771, -92.433538] }
                         ]
                     },
                     { 
@@ -205,10 +207,20 @@
                         center: [44.072678, -92.433714], 
                         back: [44.072582, -92.433597], 
                         hazards: [
-                            { name: "Left Bunker", front: [44.07296298584522, -92.43384416400436], back: [44.0728455383541, -92.43355549598716] }
+                            { name: "Left Bunker", location: [44.07296298584522, -92.43384416400436] }
                         ]
                     },
-                    { hole: 4, par: 3, tee: [44.072748, -92.434836], front: [44.073577, -92.435656], center: [44.073693, -92.435775], back: [44.073808, -92.435914], hazards: [] },
+                    { 
+                        hole: 4, 
+                        par: 3, 
+                        tee: [44.072748, -92.434836], 
+                        front: [44.073577, -92.435656], 
+                        center: [44.073693, -92.435775], 
+                        back: [44.073808, -92.435914],
+                        hazards: [
+                            { name: "Greenside Water", location: [44.073480, -92.435422] }
+                        ]
+                    },
                     { hole: 5, par: 4, tee: [44.074034, -92.439247], front: [44.074087, -92.442439], center: [44.074133, -92.442610], back: [44.074181, -92.442764], hazards: [] },
                     { 
                         hole: 6, 
@@ -229,8 +241,9 @@
                         center: [44.074769, -92.441583], 
                         back: [44.074780, -92.441421], 
                         hazards: [
+                            { name: "Fairway Bunker", location: [44.074900, -92.443000] },
                             { name: "Right Water", location: [44.074940693489815, -92.44377158818594] },
-                            { name: "Left Bunker", front: [44.07491591503698, -92.44176348042092], back: [44.0749091706003, -92.44156700862273] }
+                            { name: "Left Greenside Bunker", location: [44.07491591503698, -92.44176348042092] }
                         ]
                     },
                     { hole: 8, par: 3, tee: [44.074850, -92.439902], front: [44.074910, -92.438149], center: [44.074950, -92.437983], back: [44.074989, -92.437890], hazards: [] },
@@ -242,7 +255,7 @@
                         center: [44.075108, -92.433005], 
                         back: [44.075154, -92.432855], 
                         hazards: [
-                            { name: "Left Bunker", front: [44.07517764620998, -92.43392076595802], back: [44.07522774749392, -92.43358414874744] }
+                            { name: "Left Bunker", location: [44.07517764620998, -92.43392076595802] }
                         ]
                     }
                 ]
@@ -288,6 +301,21 @@
                 const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
                 const distance_km = R * c;
                 return distance_km * 1093.61; // Convert km to yards
+            }
+
+            // Function to determine the directional relationship of a hazard to the user's line to the green
+            function getDirection(userLat, userLon, targetLat, targetLon, hazardLat, hazardLon) {
+                // Use a simple cross-product approach. For small distances, lat/lon can be treated as a planar coordinate system.
+                const val = (targetLon - userLon) * (hazardLat - userLat) - (targetLat - userLat) * (hazardLon - userLon);
+                const epsilon = 0.0001; // A small value for floating point comparisons
+
+                if (val > epsilon) {
+                    return "Left";
+                } else if (val < -epsilon) {
+                    return "Right";
+                } else {
+                    return "Center";
+                }
             }
 
             // Function to update the UI with current hole and course info
@@ -351,15 +379,19 @@
                             hazardName = hazard.name;
                         }
 
+                        // Get the hazard's location to determine direction
+                        const hazardLoc = hazard.location || [(hazard.front[0] + hazard.back[0])/2, (hazard.front[1] + hazard.back[1])/2];
+                        const direction = getDirection(userLat, userLon, currentHole.center[0], currentHole.center[1], hazardLoc[0], hazardLoc[1]);
+
                         hazardDiv.className = `flex justify-between items-center py-2 px-3 rounded-xl shadow-sm ${bgClass} ${textClass}`;
 
                         if (hazard.front && hazard.back) {
                             const distToFront = haversine(userLat, userLon, hazard.front[0], hazard.front[1]);
                             const distToBack = haversine(userLat, userLon, hazard.back[0], hazard.back[1]);
-                            hazardDiv.innerHTML = `<div class="flex items-center space-x-2">${iconHtml}<span class="text-sm font-semibold">${hazardName}</span></div> <span class="text-lg font-bold">${Math.round(distToFront)} / ${Math.round(distToBack)}<span class="text-xs font-normal"> yds</span></span>`;
+                            hazardDiv.innerHTML = `<div class="flex items-center space-x-2">${iconHtml}<span class="text-sm font-semibold">${hazardName} <span class="text-xs font-normal">(${direction})</span></span></div> <span class="text-lg font-bold">${Math.round(distToFront)} / ${Math.round(distToBack)}<span class="text-xs font-normal"> yds</span></span>`;
                         } else if (hazard.location) {
                             const distToHazard = haversine(userLat, userLon, hazard.location[0], hazard.location[1]);
-                            hazardDiv.innerHTML = `<div class="flex items-center space-x-2">${iconHtml}<span class="text-sm font-semibold">${hazardName}</span></div> <span class="text-lg font-bold">${Math.round(distToHazard)}<span class="text-xs font-normal"> yds</span></span>`;
+                            hazardDiv.innerHTML = `<div class="flex items-center space-x-2">${iconHtml}<span class="text-sm font-semibold">${hazardName} <span class="text-xs font-normal">(${direction})</span></span></div> <span class="text-lg font-bold">${Math.round(distToHazard)}<span class="text-xs font-normal"> yds</span></span>`;
                         }
                         hazardsListEl.appendChild(hazardDiv);
                     });
@@ -611,4 +643,3 @@
     </script>
 </body>
 </html>
-
